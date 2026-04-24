@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нейронная сеть — Регрессия</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Предсказание с помощью нейронной сети</h1>
+
+        <form id="predictionForm">
+            <div class="input-group">
+                <label for="var2">Уровень на первый день без ледовых явлений на р. Луга - г. Луга:</label>
+                <input type="number" id="var2" name="var2" step="any" required
+                       placeholder="Введите значение">
+            </div>
+
+
+            <div class="input-group">
+                <label for="var3">Средняя температура воздуха в феврале по ГМС Кингисепп:</label>
+                <input type="number" id="var3" name="var3" step="any" required
+                       placeholder="Введите значение">
+            </div>
+
+            <button type="submit">Рассчитать</button>
+        </form>
+
+        <div id="result" class="result">
+            <!-- Здесь будет отображаться результат -->
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                const resultDiv = document.getElementById('result');
+
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                <div class="success">
+                    <h3>Результат расчёта:</h3>
+            <p><strong>Предсказанное значение максимального уровня воды на р. Луга - г. Луга:</strong> ${result.prediction}</p>
+            </div>`;
+                } else {
+                    resultDiv.innerHTML = `
+                <div class="error">
+            <h3>Ошибка:</h3>
+            <p>${result.error}</p>
+            </div>`;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+            <div class="error">
+            <h3>Ошибка соединения:</h3>
+            <p>Не удалось подключиться к серверу</p>
+            </div>`;
+            }
+        });
+    </script>
+</body>
+</html>
