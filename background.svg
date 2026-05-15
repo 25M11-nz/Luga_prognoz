@@ -1,0 +1,56 @@
+<svg width="100%" height="200" xmlns="http://www.w3.org/2000/svg">
+  <foreignObject width="100%" height="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        .banner {
+          /* СЮДА ВСТАВЬТЕ ССЫЛКУ НА ВАШУ КАРТИНКУ */
+          background-image: url('https://private-user-images.githubusercontent.com/278952787/593386714-69531a78-591f-49b0-81aa-0208b4c73a87.jpg?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Nzg4ODQ2OTEsIm5iZiI6MTc3ODg4NDM5MSwicGF0aCI6Ii8yNzg5NTI3ODcvNTkzMzg2NzE0LTY5NTMxYTc4LTU5MWYtNDliMC04MWFhLTAyMDhiNGM3M2E4Ny5qcGc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNTE1JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDUxNVQyMjMzMTFaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1lNzIyNmY0MGI3ZDJjMmM0YjdiMzQ3OTRiNTkzYTA3MDE2NDI3ODY3M2IxMzg2NTEyMWZkN2QxZmNmNDlhYzc4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZqcGVnIn0.SfFBf7X_0ncTMi5zidfWt3KPvLFlaCe_jBfMKZbEeHg?raw=true');
+          background-size: cover;
+          background-position: center;
+          padding: 40px 30px;
+          border-radius: 16px;
+          /* ПОЛУПРОЗРАЧНЫЙ БЕЛЫЙ ФОН ДЛЯ ТЕКСТА */
+          background-color: rgba(255, 255, 255, 0.9);
+          background-blend-mode: overlay;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        /* ЭТОТ БЛОК ОТВЕЧАЕТ ЗА ТЕКСТ НА БЕЛОМ ФОНЕ */
+        .content {
+          background: white;
+          padding: 30px;
+          border-radius: 12px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+          color: #333;
+          font-size: 2em;
+          margin-bottom: 15px;
+        }
+        
+        p {
+          color: #666;
+          font-size: 1.1em;
+          line-height: 1.5;
+        }
+      </style>
+      
+      <div class="banner">
+        <div class="content">
+          <h1>Заголовок вашего профиля</h1>
+          <p>Здесь будет ваш текст. Этот блок имеет белый фон, 
+             а за ним — ваша картинка, которая видна по краям 
+             и создаёт красивую рамку вокруг текста.</p>
+          <p>✨ Добавьте сюда любую информацию о себе!</p>
+        </div>
+      </div>
+    </div>
+  </foreignObject>
+</svg>
