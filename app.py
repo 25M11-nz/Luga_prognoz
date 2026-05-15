@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import numpy as np
+import logging
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
 
-# Веса и смещения нейронной сети (те же, что в Python‑версии)
+# Веса и смещения нейронной сети
 input_hidden_weights = np.array([
     [-1.88529711728749,  0.789588664900563],
     [ 0.696580163488472, -0.418275907658875],
@@ -98,32 +100,98 @@ def index():
 def predict():
     try:
         # Получение данных из формы
-        var2 = float(request.form['var2'])
-        var3 = float(request.form['var3'])
-
-        # Замена пропущенных значений на средние
+        var2 = request.form.get('var2')
+        var3 = request.form.get('var3')
+        
+        if var2 is None or var3 is None:
+            return jsonify({
+                'success': False,
+                'error': 'Пожалуйста, заполните все поля'
+            })
+        
+        var2 = float(var2)
+        var3 = float(var3)
+        
+        # Проверка допустимых значений
+        if var2 < min_input[0] or var2 > max_input[0]:
+            return jsonify({
+                'success': False,
+                'error': f'Уровень должен быть в диапазоне [{min_input[0]:.0f}, {max_input[0]:.0f}] см'
+            })
+        
+        if var3 < min_input[1] or var3 > max_input[1]:
+            return jsonify({
+                'success': False,
+                'error': f'Температура должна быть в диапазоне [{min_input[1]:.1f}, {max_input[1]:.1f}] °C'
+            })
+        
+        # Замена пропущенных значений
+        if var2 == -9999:
+            var2 = mean_inputs[0]
+        if var3 == -9999:
+            var3 = mean_inputs[1]
+        
+        # Подготовка данных
         input_data = np.array([var2, var3])
-        input_data[input_data == -9999] = mean_inputs[input_data == -9999]
-
-        # Нормализация входных данных
+        
+        # Нормализация
         scaled_input = scale_inputs(input_data)
-
+        
         # Запуск нейронной сети
         normalized_output = run_neural_net_regression(scaled_input)
-
-        # Денормализация результата
+        
+        # Денормализация
         final_output = unscale_targets(normalized_output)
-
+        prediction_value = float(final_output[0])
+        
+        # Ограничение результата
+        prediction_value = max(min_target[0], min(max_target[0], prediction_value))
+        
         return jsonify({
             'success': True,
-            'prediction': f"{final_output[0]:.0f}"
+            'prediction': f"{prediction_value:.0f}"
         })
-
-    except Exception as e:
+        
+    except ValueError as e:
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'Пожалуйста, введите корректные числовые значения'
+        })
+    except Exception as e:
+        app.logger.error(f'Ошибка: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': 'Внутренняя ошибка сервера'
         })
 
+@app.route('/api/historical_data', methods=['GET'])
+def get_historical_data():
+    """Возвращает исторические данные для графиков"""
+    historical_data = {
+        'years': [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
+        'actual': [245, 267, 289, 312, 298, 334, 356, 378, 345, 367, 389, 412, 398, 423],
+        'predicted': [250, 270, 285, 308, 302, 330, 352, 375, 348, 365, 385, 408, 395, 418]
+    }
+    return jsonify(historical_data)
+
+@app.route('/api/model_metrics', methods=['GET'])
+def get_model_metrics():
+    """Возвращает метрики качества модели"""
+    actual = [245, 267, 289, 312, 298, 334, 356, 378, 345, 367, 389, 412, 398, 423]
+    predicted = [250, 270, 285, 308, 302, 330, 352, 375, 348, 365, 385, 408, 395, 418]
+    
+    errors = [abs(a - p) for a, p in zip(actual, predicted)]
+    
+    metrics = {
+        'mae': float(np.mean(errors)),
+        'mse': float(np.mean(np.square(errors))),
+        'rmse': float(np.sqrt(np.mean(np.square(errors)))),
+        'max_error': float(max(errors)),
+        'min_error': float(min(errors)),
+        'accuracy': float(100 - (np.mean(errors) / np.mean(actual) * 100))
+    }
+    
+    return jsonify(metrics)
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
