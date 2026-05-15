@@ -38,10 +38,17 @@ output_bias = np.array([-0.500796073546398])
 
 # Параметры нормализации
 max_input = np.array([462.0, 1.9])
-min_input = np.array([32.0, -15.5])
+min_input = np.array([32.0, -16.1])
 max_target = np.array([467.0])
 min_target = np.array([85.0])
 mean_inputs = np.array([246.78, -6.454])
+
+# Обновленные исторические данные (из вашей таблицы)
+historical_data = {
+    'years': [1950, 1951, 1952, 1953, 1954, 1955, 1956, 1957, 1958, 1959, 1960, 1961, 1962, 1963, 1964, 1965, 1966, 1967, 1968, 1969, 1970, 1971, 1972, 1973, 1974, 1975, 1976, 1977, 1978, 1979, 1980, 1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021],
+    'predicted': [344, 405, 294, 390, 253, 397, 430, 275, 401, 185, 355, 173, 409, 35, 230, 43, 221, 133, 334, 342, 299, 383, 70, 65, 52, 184, 95, 135, 220, 314, 288, 362, 390, 378, 396, 158, 313, 150, 344, 237, 351, 350, 261, 276, 360, 277, 40, 193, 122, 464, 56, 98, 246, 332, 264, 79, 270, 205, 230, 253, 105, 84, 39, 61, 66, 40, 270, 215, 287, 130],
+    'actual': [345, 417, 303, 390, 271, 415, 467, 382, 402, 407, 358, 253, 422, 353, 259, 373, 449, 344, 366, 360, 317, 387, 305, 85, 195, 335, 291, 367, 393, 331, 363, 364, 408, 382, 394, 388, 379, 361, 363, 265, 398, 382, 333, 305, 369, 388, 161, 243, 364, 466, 294, 350, 284, 357, 338, 294, 290, 324, 340, 454, 453, 369, 406, 235, 279, 272, 285, 352, 334, 321]
+}
 
 def scale_inputs(input_data, minimum=0, maximum=1):
     """Нормализует входные данные в диапазон [minimum, maximum]"""
@@ -80,26 +87,21 @@ def compute_feed_forward_signals(mat_inout, v_in, v_bias, size1, size2, layer):
 
 def run_neural_net_regression(input_data):
     """Запускает нейронную сеть для регрессии"""
-    # Прямой проход через скрытый слой
     hidden_layer = compute_feed_forward_signals(
         input_hidden_weights, input_data, hidden_bias, 2, 11, 0
     )
-
-    # Прямой проход через выходной слой
     output_layer = compute_feed_forward_signals(
         hidden_output_wts, hidden_layer, output_bias, 11, 1, 1
     )
-
     return output_layer
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index_updated.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Получение данных из формы
         var2 = request.form.get('var2')
         var3 = request.form.get('var3')
         
@@ -112,7 +114,6 @@ def predict():
         var2 = float(var2)
         var3 = float(var3)
         
-        # Проверка допустимых значений
         if var2 < min_input[0] or var2 > max_input[0]:
             return jsonify({
                 'success': False,
@@ -125,26 +126,16 @@ def predict():
                 'error': f'Температура должна быть в диапазоне [{min_input[1]:.1f}, {max_input[1]:.1f}] °C'
             })
         
-        # Замена пропущенных значений
         if var2 == -9999:
             var2 = mean_inputs[0]
         if var3 == -9999:
             var3 = mean_inputs[1]
         
-        # Подготовка данных
         input_data = np.array([var2, var3])
-        
-        # Нормализация
         scaled_input = scale_inputs(input_data)
-        
-        # Запуск нейронной сети
         normalized_output = run_neural_net_regression(scaled_input)
-        
-        # Денормализация
         final_output = unscale_targets(normalized_output)
         prediction_value = float(final_output[0])
-        
-        # Ограничение результата
         prediction_value = max(min_target[0], min(max_target[0], prediction_value))
         
         return jsonify({
@@ -167,31 +158,7 @@ def predict():
 @app.route('/api/historical_data', methods=['GET'])
 def get_historical_data():
     """Возвращает исторические данные для графиков"""
-    historical_data = {
-        'years': [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
-        'actual': [245, 267, 289, 312, 298, 334, 356, 378, 345, 367, 389, 412, 398, 423],
-        'predicted': [250, 270, 285, 308, 302, 330, 352, 375, 348, 365, 385, 408, 395, 418]
-    }
     return jsonify(historical_data)
-
-@app.route('/api/model_metrics', methods=['GET'])
-def get_model_metrics():
-    """Возвращает метрики качества модели"""
-    actual = [245, 267, 289, 312, 298, 334, 356, 378, 345, 367, 389, 412, 398, 423]
-    predicted = [250, 270, 285, 308, 302, 330, 352, 375, 348, 365, 385, 408, 395, 418]
-    
-    errors = [abs(a - p) for a, p in zip(actual, predicted)]
-    
-    metrics = {
-        'mae': float(np.mean(errors)),
-        'mse': float(np.mean(np.square(errors))),
-        'rmse': float(np.sqrt(np.mean(np.square(errors)))),
-        'max_error': float(max(errors)),
-        'min_error': float(min(errors)),
-        'accuracy': float(100 - (np.mean(errors) / np.mean(actual) * 100))
-    }
-    
-    return jsonify(metrics)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
