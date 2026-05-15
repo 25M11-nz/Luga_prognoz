@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анализ прогнозов нейронной сети - Река Луга</title>
+    <title>Нейронная сеть - Прогнозирование уровня воды | Река Луга</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         * {
@@ -19,81 +19,185 @@
             padding: 2rem;
         }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 2rem;
-        }
-
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
         .container {
             background: white;
             padding: 2rem;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             width: 100%;
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto 2rem auto;
         }
 
-        .container h2 {
-            color: #333;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
+        h1 {
             text-align: center;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba1 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #c3e6cb;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #f5c6cb;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .success h3, .error h3 {
+            margin-bottom: 0.8rem;
+        }
+
+        .prediction-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #155724;
+            margin: 0.5rem 0;
+        }
+
+        .prediction-info {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #c3e6cb;
+            font-size: 0.9rem;
+            color: #155724;
+        }
+
+        .unit {
+            font-size: 1rem;
+            font-weight: normal;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #667eea;
+            font-size: 1.1rem;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            gap: 1rem;
             margin-bottom: 2rem;
         }
 
         .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba1 100%);
             color: white;
-            padding: 1.5rem;
+            padding: 1rem;
             border-radius: 10px;
             text-align: center;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             opacity: 0.9;
-        }
-
-        .chart-row {
-            margin-bottom: 2rem;
+            margin-top: 0.3rem;
         }
 
         .info-text {
             background: #f8f9fa;
-            padding: 1rem;
+            padding: 0.8rem;
             border-radius: 8px;
             margin-top: 1rem;
             text-align: center;
             color: #666;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 768px) {
@@ -102,7 +206,15 @@
             }
             
             .container {
-                padding: 1rem;
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+            }
+            
+            .prediction-value {
+                font-size: 1.5rem;
             }
             
             .stats-grid {
@@ -112,299 +224,245 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🌊 Анализ прогнозов нейронной сети</h1>
-        <p>Река Луга - город Луга | Модель прогнозирования максимального уровня воды</p>
-    </div>
-
     <div class="container">
-        <h2>📊 Ключевые метрики модели</h2>
-        <div class="stats-grid" id="stats">
-            <!-- Статистика будет загружена сюда -->
+        <h1>🌊 Прогнозирование уровня воды</h1>
+        <div class="subtitle">Нейронная сеть для реки Луга - город Луга</div>
+
+        <form id="predictionForm">
+            <div class="input-group">
+                <label for="var2">📊 Уровень на первый день без ледовых явлений:</label>
+                <input type="number" id="var2" name="var2" step="any" required
+                       placeholder="Введите значение (32-462 см)">
+            </div>
+
+            <div class="input-group">
+                <label for="var3">🌡️ Средняя температура воздуха в феврале (ГМС Кингисепп):</label>
+                <input type="number" id="var3" name="var3" step="any" required
+                       placeholder="Введите значение (-16.1 - 1.9 °C)">
+            </div>
+
+            <button type="submit">🔮 Рассчитать прогноз</button>
+        </form>
+
+        <div id="result" class="result">
+            <!-- Результат будет отображаться здесь -->
         </div>
     </div>
 
     <div class="container">
-        <h2>📈 График 1: Фактические vs Прогнозируемые значения</h2>
-        <div class="chart-row">
-            <div id="comparisonChart" style="height: 500px;"></div>
-        </div>
+        <h2>📈 График 1: Фактические и прогнозируемые значения</h2>
+        <div id="comparisonChart" style="height: 450px;"></div>
         <div class="info-text">
-            💡 Сравнение фактических измерений уровня воды с прогнозами нейронной сети.
-            Зеленая линия показывает идеальное совпадение прогноза с фактом.
+            💡 Синяя линия - фактические измерения, красная пунктирная - прогнозы модели.
+            Чем ближе линии друг к другу, тем точнее модель.
         </div>
     </div>
 
     <div class="container">
-        <h2>📉 График 2: Абсолютная ошибка прогноза по годам</h2>
-        <div class="chart-row">
-            <div id="errorChart" style="height: 450px;"></div>
-        </div>
+        <h2>📉 График 2: Ошибка прогноза по годам</h2>
+        <div id="errorChart" style="height: 450px;"></div>
         <div class="info-text">
-            💡 Столбцы показывают отклонение прогноза от фактического значения (в см).
+            💡 Столбцы показывают отклонение прогноза от факта в сантиметрах.
             Зеленый цвет - ошибка до 2 см, желтый - 2-2.5 см, красный - более 2.5 см.
         </div>
     </div>
 
     <div class="container">
-        <h2>🎯 График 3: Относительная ошибка прогноза (%)</h2>
-        <div class="chart-row">
-            <div id="relativeErrorChart" style="height: 450px;"></div>
-        </div>
-        <div class="info-text">
-            💡 Относительная ошибка показывает точность прогноза в процентах от фактического значения.
-            Пороговое значение в 5% выделено красной линией.
-        </div>
-    </div>
-
-    <div class="container">
-        <h2>📊 График 4: Распределение ошибок (гистограмма)</h2>
-        <div class="chart-row">
-            <div id="distributionChart" style="height: 450px;"></div>
-        </div>
-        <div class="info-text">
-            💡 Гистограмма показывает, как часто встречаются ошибки разной величины.
-            Большинство прогнозов имеют ошибку до 3 см.
-        </div>
-    </div>
-
-    <div class="container">
-        <h2>🔄 График 5: Корреляция "Факт vs Прогноз"</h2>
-        <div class="chart-row">
-            <div id="correlationChart" style="height: 450px;"></div>
-        </div>
-        <div class="info-text">
-            💡 Каждая точка соответствует одному году. Чем ближе точки к красной линии,
-            тем точнее прогноз. Коэффициент корреляции показывает силу связи.
+        <h2>📊 Статистика модели</h2>
+        <div class="stats-grid" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="mae">-</div>
+                <div class="stat-label">Средняя ошибка (MAE)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="maxError">-</div>
+                <div class="stat-label">Максимальная ошибка</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="accuracy">-</div>
+                <div class="stat-label">Точность модели</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="correlation">-</div>
+                <div class="stat-label">Корреляция</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Данные из расчетов (70 лет наблюдений)
-        const data = {
-            years: [1950, 1951, 1952, 1953, 1954, 1955, 1956, 1957, 1958, 1959, 1960, 1961, 1962, 1963, 1964, 1965, 1966, 1967, 1968, 1969, 1970, 1971, 1972, 1973, 1974, 1975, 1976, 1977, 1978, 1979, 1980, 1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021],
-            actual: [345, 404, 296, 388, 251, 395, 428, 276, 399, 187, 353, 176, 407, 32, 228, 40, 218, 131, 336, 340, 296, 381, 67, 63, 54, 186, 93, 132, 217, 311, 286, 364, 388, 376, 394, 155, 310, 148, 346, 240, 354, 352, 263, 278, 357, 279, 37, 195, 120, 462, 58, 96, 248, 334, 262, 76, 267, 208, 232, 251, 102, 81, 37, 63, 68, 42, 272, 213, 289, 127],
-            predicted: [344, 405, 294, 390, 253, 397, 430, 275, 401, 185, 355, 173, 409, 35, 230, 43, 221, 133, 334, 342, 299, 383, 70, 65, 52, 184, 95, 135, 220, 314, 288, 362, 390, 378, 396, 158, 313, 150, 344, 237, 351, 350, 261, 276, 360, 277, 40, 193, 122, 464, 56, 98, 246, 332, 264, 79, 270, 205, 230, 253, 105, 84, 39, 61, 66, 40, 270, 215, 287, 130],
-            temperature: [-5.1, -7.7, -5.7, -10.9, -13.8, -7.9, -15.5, -2.2, -8.8, -3.6, -9.5, -0.3, -5.3, -12.3, -9.2, -9.4, -13.1, -7.2, -6.0, -9.3, -10.4, -7.2, -4.2, -4.9, -0.5, -4.5, -8.9, -8.4, -11.4, -10.9, -9.0, -5.1, -7.1, -8.9, -6.8, -16.1, -12.4, -5.5, -4.3, 0.7, 1.9, -5.6, -2.3, -2.4, -12.7, -0.6, -11.5, -3.9, -5.9, -7.9, -2.4, -6.5, -0.6, -5.4, -7.6, -10.5, -11.5, 0.2, -4.9, -8.3, -11.8, -11.5, -3.2, -0.4, -1.0, 0.0, -3.6, -8.0, -0.5, -8.8]
-        };
+        let historicalData = null;
 
-        // Расчет ошибок
-        const absoluteErrors = data.actual.map((a, i) => Math.abs(a - data.predicted[i]));
-        const relativeErrors = data.actual.map((a, i) => (Math.abs(a - data.predicted[i]) / a * 100));
-        
-        // Статистика
-        const mae = (absoluteErrors.reduce((a, b) => a + b, 0) / absoluteErrors.length).toFixed(2);
-        const maxError = Math.max(...absoluteErrors);
-        const minError = Math.min(...absoluteErrors);
-        const mape = (relativeErrors.reduce((a, b) => a + b, 0) / relativeErrors.length).toFixed(2);
-        const accuracy = (100 - mape).toFixed(2);
-        
-        // Корреляция
-        function calculateCorrelation(x, y) {
-            const n = x.length;
-            const sumX = x.reduce((a, b) => a + b, 0);
-            const sumY = y.reduce((a, b) => a + b, 0);
-            const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
-            const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
-            const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
-            const correlation = (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-            return correlation.toFixed(4);
+        // Загрузка исторических данных
+        async function loadHistoricalData() {
+            try {
+                const response = await fetch('/api/historical_data');
+                historicalData = await response.json();
+                createCharts();
+                calculateStats();
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                // Используем встроенные данные на случай ошибки
+                historicalData = {
+                    years: [1950, 1951, 1952, 1953, 1954, 1955, 1956, 1957, 1958, 1959, 1960, 1961, 1962, 1963, 1964, 1965, 1966, 1967, 1968, 1969, 1970, 1971, 1972, 1973, 1974, 1975, 1976, 1977, 1978, 1979, 1980, 1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021],
+                    actual: [345, 404, 296, 388, 251, 395, 428, 276, 399, 187, 353, 176, 407, 32, 228, 40, 218, 131, 336, 340, 296, 381, 67, 63, 54, 186, 93, 132, 217, 311, 286, 364, 388, 376, 394, 155, 310, 148, 346, 240, 354, 352, 263, 278, 357, 279, 37, 195, 120, 462, 58, 96, 248, 334, 262, 76, 267, 208, 232, 251, 102, 81, 37, 63, 68, 42, 272, 213, 289, 127],
+                    predicted: [344, 405, 294, 390, 253, 397, 430, 275, 401, 185, 355, 173, 409, 35, 230, 43, 221, 133, 334, 342, 299, 383, 70, 65, 52, 184, 95, 135, 220, 314, 288, 362, 390, 378, 396, 158, 313, 150, 344, 237, 351, 350, 261, 276, 360, 277, 40, 193, 122, 464, 56, 98, 246, 332, 264, 79, 270, 205, 230, 253, 105, 84, 39, 61, 66, 40, 270, 215, 287, 130]
+                };
+                createCharts();
+                calculateStats();
+            }
         }
-        
-        const correlation = calculateCorrelation(data.actual, data.predicted);
-        
-        // Отображение статистики
-        document.getElementById('stats').innerHTML = `
-            <div class="stat-card">
-                <div class="stat-value">${mae} см</div>
-                <div class="stat-label">Средняя абсолютная ошибка (MAE)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">${maxError} см</div>
-                <div class="stat-label">Максимальная ошибка</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">${minError} см</div>
-                <div class="stat-label">Минимальная ошибка</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">${mape}%</div>
-                <div class="stat-label">Средняя относительная ошибка (MAPE)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">${accuracy}%</div>
-                <div class="stat-label">Точность модели</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">${correlation}</div>
-                <div class="stat-label">Коэффициент корреляции (R²)</div>
-            </div>
-        `;
-        
-        // График 1: Сравнение фактических и прогнозируемых значений
-        const comparisonTrace1 = {
-            x: data.years,
-            y: data.actual,
-            name: 'Фактические значения',
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#2E86AB', width: 2 },
-            marker: { size: 6, color: '#2E86AB' },
-            hovertemplate: '<b>Год: %{x}</b><br>Факт: %{y} см<extra></extra>'
-        };
-        
-        const comparisonTrace2 = {
-            x: data.years,
-            y: data.predicted,
-            name: 'Прогнозируемые значения',
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#A23B72', width: 2, dash: 'dash' },
-            marker: { size: 6, color: '#A23B72', symbol: 'diamond' },
-            hovertemplate: '<b>Год: %{x}</b><br>Прогноз: %{y} см<extra></extra>'
-        };
-        
-        const comparisonLayout = {
-            title: 'Сравнение фактических и прогнозируемых значений уровня воды (1950-2021)',
-            xaxis: { title: 'Год', gridcolor: '#e0e0e0' },
-            yaxis: { title: 'Уровень воды (см)', gridcolor: '#e0e0e0' },
-            hovermode: 'closest',
-            plot_bgcolor: '#f8f9fa',
-            legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(255,255,255,0.9)' }
-        };
-        
-        Plotly.newPlot('comparisonChart', [comparisonTrace1, comparisonTrace2], comparisonLayout, {responsive: true});
-        
-        // График 2: Абсолютная ошибка
-        const errorTrace = {
-            x: data.years,
-            y: absoluteErrors,
-            name: 'Абсолютная ошибка',
-            type: 'bar',
-            marker: {
-                color: absoluteErrors.map(err => err > 2.5 ? '#dc3545' : (err > 2 ? '#ffc107' : '#28a745')),
-                line: { color: 'rgba(0,0,0,0.1)', width: 1 }
-            },
-            text: absoluteErrors.map(err => err.toFixed(2) + ' см'),
-            textposition: 'auto',
-            hovertemplate: '<b>Год: %{x}</b><br>Ошибка: %{y:.2f} см<extra></extra>'
-        };
-        
-        const errorLayout = {
-            title: 'Абсолютная ошибка прогноза по годам',
-            xaxis: { title: 'Год', gridcolor: '#e0e0e0', tickangle: -45 },
-            yaxis: { title: 'Ошибка (см)', gridcolor: '#e0e0e0' },
-            plot_bgcolor: '#f8f9fa',
-            showlegend: false,
-            annotations: [{
-                x: 0.5,
-                y: 1.05,
-                xref: 'paper',
-                yref: 'paper',
-                text: `<b>Средняя ошибка: ${mae} см | Максимум: ${maxError} см</b>`,
-                showarrow: false,
-                font: { size: 14 }
-            }]
-        };
-        
-        Plotly.newPlot('errorChart', [errorTrace], errorLayout, {responsive: true});
-        
-        // График 3: Относительная ошибка
-        const relativeTrace = {
-            x: data.years,
-            y: relativeErrors,
-            name: 'Относительная ошибка',
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: '#FF6B6B', width: 2 },
-            marker: { size: 6, color: '#FF6B6B' },
-            hovertemplate: '<b>Год: %{x}</b><br>Ошибка: %{y:.2f}%<extra></extra>'
-        };
-        
-        const relativeLayout = {
-            title: 'Относительная ошибка прогноза (%)',
-            xaxis: { title: 'Год', gridcolor: '#e0e0e0' },
-            yaxis: { title: 'Ошибка (%)', gridcolor: '#e0e0e0', rangemode: 'nonnegative' },
-            plot_bgcolor: '#f8f9fa',
-            shapes: [{
-                type: 'line',
-                x0: Math.min(...data.years),
-                x1: Math.max(...data.years),
-                y0: 5,
-                y1: 5,
-                line: { color: 'red', width: 2, dash: 'dash' },
-                label: { text: 'Порог 5%', font: { size: 12 } }
-            }],
-            annotations: [{
-                x: 0.5,
-                y: 1.05,
-                xref: 'paper',
-                yref: 'paper',
-                text: `<b>Средняя относительная ошибка: ${mape}%</b>`,
-                showarrow: false,
-                font: { size: 14 }
-            }]
-        };
-        
-        Plotly.newPlot('relativeErrorChart', [relativeTrace], relativeLayout, {responsive: true});
-        
-        // График 4: Гистограмма распределения ошибок
-        const histTrace = {
-            x: absoluteErrors,
-            type: 'histogram',
-            nbinsx: 10,
-            marker: { color: '#667eea', line: { color: 'white', width: 1 } },
-            hovertemplate: 'Ошибка: %{x:.1f} см<br>Частота: %{y}<extra></extra>'
-        };
-        
-        const histLayout = {
-            title: 'Распределение абсолютных ошибок прогноза',
-            xaxis: { title: 'Абсолютная ошибка (см)', gridcolor: '#e0e0e0' },
-            yaxis: { title: 'Частота (количество лет)', gridcolor: '#e0e0e0' },
-            plot_bgcolor: '#f8f9fa',
-            bargap: 0.1
-        };
-        
-        Plotly.newPlot('distributionChart', [histTrace], histLayout, {responsive: true});
-        
-        // График 5: Корреляция факт vs прогноз
-        const correlationTrace = {
-            x: data.actual,
-            y: data.predicted,
-            mode: 'markers',
-            type: 'scatter',
-            marker: {
-                size: 8,
-                color: data.years,
-                colorscale: 'Viridis',
-                showscale: true,
-                colorbar: { title: 'Год' }
-            },
-            text: data.years.map(y => `Год: ${y}`),
-            hovertemplate: '<b>Год: %{text}</b><br>Факт: %{x} см<br>Прогноз: %{y} см<extra></extra>'
-        };
-        
-        // Линия идеального прогноза
-        const minVal = Math.min(...data.actual, ...data.predicted);
-        const maxVal = Math.max(...data.actual, ...data.predicted);
-        const idealLine = {
-            x: [minVal, maxVal],
-            y: [minVal, maxVal],
-            mode: 'lines',
-            name: 'Идеальный прогноз',
-            line: { color: 'red', width: 2, dash: 'dash' },
-            hoverinfo: 'skip'
-        };
-        
-        const correlationLayout = {
-            title: `Корреляция между фактическими и прогнозируемыми значениями (R² = ${correlation})`,
-            xaxis: { title: 'Фактические значения (см)', gridcolor: '#e0e0e0' },
-            yaxis: { title: 'Прогнозируемые значения (см)', gridcolor: '#e0e0e0' },
-            plot_bgcolor: '#f8f9fa',
-            aspectratio: { scale: 1 }
-        };
-        
-        Plotly.newPlot('correlationChart', [correlationTrace, idealLine], correlationLayout, {responsive: true});
+
+        function calculateStats() {
+            const errors = historicalData.actual.map((a, i) => Math.abs(a - historicalData.predicted[i]));
+            const mae = (errors.reduce((a, b) => a + b, 0) / errors.length).toFixed(2);
+            const maxError = Math.max(...errors);
+            
+            // Расчет корреляции
+            const actual = historicalData.actual;
+            const predicted = historicalData.predicted;
+            const n = actual.length;
+            const sumX = actual.reduce((a, b) => a + b, 0);
+            const sumY = predicted.reduce((a, b) => a + b, 0);
+            const sumXY = actual.reduce((sum, xi, i) => sum + xi * predicted[i], 0);
+            const sumX2 = actual.reduce((sum, xi) => sum + xi * xi, 0);
+            const sumY2 = predicted.reduce((sum, yi) => sum + yi * yi, 0);
+            const correlation = ((n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY))).toFixed(4);
+            
+            // Точность
+            const relativeErrors = errors.map((e, i) => e / historicalData.actual[i] * 100);
+            const mape = relativeErrors.reduce((a, b) => a + b, 0) / relativeErrors.length;
+            const accuracy = (100 - mape).toFixed(2);
+            
+            document.getElementById('mae').textContent = `${mae} см`;
+            document.getElementById('maxError').textContent = `${maxError} см`;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            document.getElementById('correlation').textContent = correlation;
+        }
+
+        function createCharts() {
+            // График 1: Сравнение фактических и прогнозируемых значений
+            const comparisonTrace1 = {
+                x: historicalData.years,
+                y: historicalData.actual,
+                name: 'Фактические значения',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#2E86AB', width: 2 },
+                marker: { size: 6, color: '#2E86AB' },
+                hovertemplate: '<b>Год: %{x}</b><br>Факт: %{y} см<extra></extra>'
+            };
+
+            const comparisonTrace2 = {
+                x: historicalData.years,
+                y: historicalData.predicted,
+                name: 'Прогнозируемые значения',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#A23B72', width: 2, dash: 'dash' },
+                marker: { size: 6, color: '#A23B72', symbol: 'diamond' },
+                hovertemplate: '<b>Год: %{x}</b><br>Прогноз: %{y} см<extra></extra>'
+            };
+
+            const comparisonLayout = {
+                title: 'Сравнение фактических и прогнозируемых значений (1950-2021)',
+                xaxis: { title: 'Год', gridcolor: '#e0e0e0', tickangle: -45 },
+                yaxis: { title: 'Уровень воды (см)', gridcolor: '#e0e0e0' },
+                hovermode: 'closest',
+                plot_bgcolor: '#f8f9fa',
+                legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(255,255,255,0.9)' }
+            };
+
+            Plotly.newPlot('comparisonChart', [comparisonTrace1, comparisonTrace2], comparisonLayout, {responsive: true});
+
+            // График 2: Абсолютная ошибка
+            const errors = historicalData.actual.map((a, i) => Math.abs(a - historicalData.predicted[i]));
+            
+            const errorTrace = {
+                x: historicalData.years,
+                y: errors,
+                name: 'Абсолютная ошибка',
+                type: 'bar',
+                marker: {
+                    color: errors.map(err => err > 2.5 ? '#dc3545' : (err > 2 ? '#ffc107' : '#28a745')),
+                    line: { color: 'rgba(0,0,0,0.1)', width: 1 }
+                },
+                text: errors.map(err => err.toFixed(2) + ' см'),
+                textposition: 'auto',
+                textfont: { size: 10 },
+                hovertemplate: '<b>Год: %{x}</b><br>Ошибка: %{y:.2f} см<extra></extra>'
+            };
+
+            const avgError = (errors.reduce((a, b) => a + b, 0) / errors.length).toFixed(2);
+            const maxError = Math.max(...errors);
+
+            const errorLayout = {
+                title: 'Абсолютная ошибка прогноза по годам',
+                xaxis: { title: 'Год', gridcolor: '#e0e0e0', tickangle: -45 },
+                yaxis: { title: 'Ошибка (см)', gridcolor: '#e0e0e0' },
+                plot_bgcolor: '#f8f9fa',
+                showlegend: false,
+                annotations: [{
+                    x: 0.5,
+                    y: 1.05,
+                    xref: 'paper',
+                    yref: 'paper',
+                    text: `<b>📊 Средняя ошибка: ${avgError} см | Максимальная: ${maxError} см</b>`,
+                    showarrow: false,
+                    font: { size: 13 }
+                }]
+            };
+
+            Plotly.newPlot('errorChart', [errorTrace], errorLayout, {responsive: true});
+        }
+
+        // Отправка формы
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const var2 = parseFloat(formData.get('var2'));
+            const var3 = parseFloat(formData.get('var3'));
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="loading">⏳ Расчет прогноза...</div>';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Результат расчёта:</h3>
+                            <div class="prediction-value">${result.prediction} <span class="unit">см</span></div>
+                            <div class="prediction-info">
+                                📊 При входных данных:<br>
+                                • Уровень на первый день: ${var2} см<br>
+                                • Средняя температура февраля: ${var3} °C
+                            </div>
+                        </div>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Ошибка:</h3>
+                            <p>${result.error}</p>
+                        </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Ошибка соединения:</h3>
+                        <p>Не удалось подключиться к серверу</p>
+                    </div>`;
+            }
+        });
+
+        // Загрузка данных при загрузке страницы
+        loadHistoricalData();
     </script>
 </body>
 </html>
