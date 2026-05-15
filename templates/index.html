@@ -15,13 +15,13 @@
             <div class="input-group">
                 <label for="var2">Уровень на первый день без ледовых явлений на р. Луга - г. Луга:</label>
                 <input type="number" id="var2" name="var2" step="any" required
-                       placeholder="Введите значение">
+                       placeholder="Введите значение (32-462 см)">
             </div>
 
             <div class="input-group">
                 <label for="var3">Средняя температура воздуха в феврале по ГМС Кингисепп:</label>
                 <input type="number" id="var3" name="var3" step="any" required
-                       placeholder="Введите значение">
+                       placeholder="Введите значение (-15.5 - 1.9 °C)">
             </div>
 
             <button type="submit">Рассчитать</button>
@@ -34,103 +34,221 @@
 
     <!-- Контейнеры для графиков -->
     <div class="container" style="margin-top: 2rem;">
-        <h2>График фактических и прогнозируемых значений</h2>
-        <div id="comparisonChart" style="height: 400px;"></div>
+        <h2>📊 График фактических и прогнозируемых значений</h2>
+        <div id="comparisonChart" style="height: 450px;"></div>
     </div>
 
     <div class="container" style="margin-top: 2rem;">
-        <h2>График ошибок модели</h2>
-        <div id="errorChart" style="height: 400px;"></div>
+        <h2>📈 График ошибок модели</h2>
+        <div id="errorChart" style="height: 450px;"></div>
+    </div>
+
+    <div class="container" style="margin-top: 2rem;">
+        <h2>📉 Метрики качества модели</h2>
+        <div id="metrics" class="metrics-container">
+            <div class="loading">Загрузка метрик...</div>
+        </div>
     </div>
 
     <script>
-        // Данные для графиков (фактические и прогнозируемые значения)
-        const historicalData = {
-            years: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
-            actual: [245, 267, 289, 312, 298, 334, 356, 378, 345, 367, 389, 412, 398, 423],
-            predicted: [250, 270, 285, 308, 302, 330, 352, 375, 348, 365, 385, 408, 395, 418]
-        };
+        // Загрузка исторических данных
+        let historicalData = null;
 
-        // Расчет ошибок
-        const errors = historicalData.actual.map((actual, index) => {
-            return Math.abs(actual - historicalData.predicted[index]);
-        });
+        async function loadHistoricalData() {
+            try {
+                const response = await fetch('/api/historical_data');
+                historicalData = await response.json();
+                createCharts();
+                loadMetrics();
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                // Демо-данные на случай ошибки
+                historicalData = {
+                    years: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
+                    actual: [245, 267, 289, 312, 298, 334, 356, 378, 345, 367, 389, 412, 398, 423],
+                    predicted: [250, 270, 285, 308, 302, 330, 352, 375, 348, 365, 385, 408, 395, 418]
+                };
+                createCharts();
+                loadMetrics();
+            }
+        }
 
-        // График 1: Сравнение фактических и прогнозируемых значений
-        const comparisonTrace1 = {
-            x: historicalData.years,
-            y: historicalData.actual,
-            name: 'Фактические значения',
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: 'blue', width: 2 },
-            marker: { size: 8, color: 'blue' }
-        };
+        function createCharts() {
+            // Расчет ошибок
+            const errors = historicalData.actual.map((actual, index) => {
+                return Math.abs(actual - historicalData.predicted[index]);
+            });
 
-        const comparisonTrace2 = {
-            x: historicalData.years,
-            y: historicalData.predicted,
-            name: 'Прогнозируемые значения',
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: 'red', width: 2, dash: 'dash' },
-            marker: { size: 8, color: 'red' }
-        };
+            // График 1: Сравнение фактических и прогнозируемых значений
+            const comparisonTrace1 = {
+                x: historicalData.years,
+                y: historicalData.actual,
+                name: 'Фактические значения',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#2E86AB', width: 3 },
+                marker: { size: 10, color: '#2E86AB', symbol: 'circle' },
+                hovertemplate: '<b>Год: %{x}</b><br>' +
+                              '<span style="color:#2E86AB">Фактическое значение: %{y} см</span><br>' +
+                              '<extra></extra>'
+            };
 
-        const comparisonLayout = {
-            title: 'Сравнение фактических и прогнозируемых значений уровня воды',
-            xaxis: { title: 'Год', gridcolor: '#e0e0e0' },
-            yaxis: { title: 'Уровень воды (см)', gridcolor: '#e0e0e0' },
-            hovermode: 'closest',
-            plot_bgcolor: '#f8f9fa',
-            paper_bgcolor: 'white',
-            legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(255,255,255,0.8)' }
-        };
+            const comparisonTrace2 = {
+                x: historicalData.years,
+                y: historicalData.predicted,
+                name: 'Прогнозируемые значения',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#A23B72', width: 3, dash: 'dash' },
+                marker: { size: 10, color: '#A23B72', symbol: 'diamond' },
+                hovertemplate: '<b>Год: %{x}</b><br>' +
+                              '<span style="color:#A23B72">Прогнозируемое значение: %{y} см</span><br>' +
+                              '<extra></extra>'
+            };
 
-        Plotly.newPlot('comparisonChart', [comparisonTrace1, comparisonTrace2], comparisonLayout);
+            const comparisonLayout = {
+                title: {
+                    text: 'Сравнение фактических и прогнозируемых значений уровня воды',
+                    font: { size: 16, family: 'Arial, sans-serif' }
+                },
+                xaxis: { 
+                    title: 'Год', 
+                    gridcolor: '#e0e0e0',
+                    tickangle: -45
+                },
+                yaxis: { 
+                    title: 'Уровень воды (см)', 
+                    gridcolor: '#e0e0e0',
+                    rangemode: 'nonnegative'
+                },
+                hovermode: 'closest',
+                plot_bgcolor: '#f8f9fa',
+                paper_bgcolor: 'white',
+                legend: { 
+                    x: 0.02, 
+                    y: 0.98, 
+                    bgcolor: 'rgba(255,255,255,0.9)',
+                    bordercolor: '#ccc',
+                    borderwidth: 1
+                },
+                shapes: [{
+                    type: 'line',
+                    x0: historicalData.years[0],
+                    x1: historicalData.years[historicalData.years.length - 1],
+                    y0: 0,
+                    y1: 0,
+                    line: { color: '#ccc', width: 1, dash: 'dot' }
+                }]
+            };
 
-        // График 2: Ошибки модели
-        const errorTrace = {
-            x: historicalData.years,
-            y: errors,
-            name: 'Абсолютная ошибка',
-            type: 'bar',
-            marker: {
-                color: errors.map(err => err > 10 ? '#dc3545' : '#28a745'),
-                line: { color: 'rgba(0,0,0,0.1)', width: 1 }
-            },
-            text: errors.map(err => err.toFixed(2) + ' см'),
-            textposition: 'auto'
-        };
+            Plotly.newPlot('comparisonChart', [comparisonTrace1, comparisonTrace2], comparisonLayout, {responsive: true});
 
-        const errorLayout = {
-            title: 'Абсолютная ошибка прогноза по годам',
-            xaxis: { title: 'Год', gridcolor: '#e0e0e0' },
-            yaxis: { title: 'Ошибка (см)', gridcolor: '#e0e0e0' },
-            hovermode: 'closest',
-            plot_bgcolor: '#f8f9fa',
-            paper_bgcolor: 'white',
-            showlegend: false,
-            annotations: [{
-                x: 0.5,
-                y: 1.05,
-                xref: 'paper',
-                yref: 'paper',
-                text: 'Средняя ошибка: ' + (errors.reduce((a,b) => a+b, 0) / errors.length).toFixed(2) + ' см',
-                showarrow: false,
-                font: { size: 14, color: '#333' }
-            }]
-        };
+            // График 2: Ошибки модели
+            const errorTrace = {
+                x: historicalData.years,
+                y: errors,
+                name: 'Абсолютная ошибка',
+                type: 'bar',
+                marker: {
+                    color: errors.map(err => err > 15 ? '#dc3545' : (err > 8 ? '#ffc107' : '#28a745')),
+                    line: { color: 'rgba(0,0,0,0.1)', width: 1 }
+                },
+                text: errors.map(err => err.toFixed(2) + ' см'),
+                textposition: 'auto',
+                textfont: { size: 11 },
+                hovertemplate: '<b>Год: %{x}</b><br>' +
+                              '<span style="color:#dc3545">Ошибка: %{y:.2f} см</span><br>' +
+                              '<extra></extra>'
+            };
 
-        Plotly.newPlot('errorChart', [errorTrace], errorLayout);
+            const avgError = (errors.reduce((a,b) => a+b, 0) / errors.length).toFixed(2);
+            
+            const errorLayout = {
+                title: {
+                    text: 'Абсолютная ошибка прогноза по годам',
+                    font: { size: 16, family: 'Arial, sans-serif' }
+                },
+                xaxis: { 
+                    title: 'Год', 
+                    gridcolor: '#e0e0e0',
+                    tickangle: -45
+                },
+                yaxis: { 
+                    title: 'Ошибка (см)', 
+                    gridcolor: '#e0e0e0',
+                    rangemode: 'nonnegative'
+                },
+                hovermode: 'closest',
+                plot_bgcolor: '#f8f9fa',
+                paper_bgcolor: 'white',
+                showlegend: false,
+                annotations: [{
+                    x: 0.5,
+                    y: 1.05,
+                    xref: 'paper',
+                    yref: 'paper',
+                    text: `<b>📊 Средняя ошибка: ${avgError} см</b>`,
+                    showarrow: false,
+                    font: { size: 14, color: '#333' },
+                    bgcolor: 'rgba(255,255,255,0.8)',
+                    borderpad: 10
+                }]
+            };
 
-        // Обновление графиков при новом прогнозе
+            Plotly.newPlot('errorChart', [errorTrace], errorLayout, {responsive: true});
+        }
+
+        async function loadMetrics() {
+            try {
+                const response = await fetch('/api/model_metrics');
+                const metrics = await response.json();
+                
+                const metricsHTML = `
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-title">Средняя абсолютная ошибка (MAE)</div>
+                            <div class="metric-value">${metrics.mae.toFixed(2)} <span class="metric-unit">см</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Среднеквадратичная ошибка (MSE)</div>
+                            <div class="metric-value">${metrics.mse.toFixed(2)} <span class="metric-unit">см²</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Корень из MSE (RMSE)</div>
+                            <div class="metric-value">${metrics.rmse.toFixed(2)} <span class="metric-unit">см</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Максимальная ошибка</div>
+                            <div class="metric-value">${metrics.max_error.toFixed(2)} <span class="metric-unit">см</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Минимальная ошибка</div>
+                            <div class="metric-value">${metrics.min_error.toFixed(2)} <span class="metric-unit">см</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Точность модели</div>
+                            <div class="metric-value">${metrics.accuracy.toFixed(2)} <span class="metric-unit">%</span></div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('metrics').innerHTML = metricsHTML;
+            } catch (error) {
+                document.getElementById('metrics').innerHTML = '<div class="error">Ошибка загрузки метрик</div>';
+            }
+        }
+
+        // Отправка формы
         document.getElementById('predictionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const formData = new FormData(this);
             const var2 = parseFloat(formData.get('var2'));
             const var3 = parseFloat(formData.get('var3'));
+
+            // Показываем индикатор загрузки
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="loading">Расчет...</div>';
 
             try {
                 const response = await fetch('/predict', {
@@ -139,49 +257,35 @@
                 });
 
                 const result = await response.json();
-                const resultDiv = document.getElementById('result');
 
                 if (result.success) {
                     const prediction = parseFloat(result.prediction);
                     
                     resultDiv.innerHTML = `
                         <div class="success">
-                            <h3>Результат расчёта:</h3>
-                            <p><strong>Предсказанное значение максимального уровня воды на р. Луга - г. Луга:</strong> ${result.prediction} см</p>
+                            <h3>✅ Результат расчёта:</h3>
+                            <p><strong>Предсказанное значение максимального уровня воды:</strong></p>
+                            <p class="prediction-value">${result.prediction} <span class="unit">см</span></p>
+                            <div class="prediction-info">
+                                <small>При входных данных:</small><br>
+                                <small>• Уровень на первый день: ${var2} см</small><br>
+                                <small>• Средняя температура февраля: ${var3} °C</small>
+                            </div>
                         </div>`;
 
-                    // Добавляем новую точку на графики
-                    const currentYear = new Date().getFullYear();
-                    
-                    // Обновляем график сравнения
-                    Plotly.extendTraces('comparisonChart', {
-                        x: [[currentYear]],
-                        y: [[prediction]]
-                    }, [1]); // Индекс 1 - прогнозируемые значения
-
-                    // Добавляем новую ошибку (для демонстрации используем случайное фактическое значение)
-                    // В реальном приложении здесь должно быть фактическое значение
-                    const estimatedError = Math.abs(prediction - (prediction * (0.95 + Math.random() * 0.1)));
-                    
-                    Plotly.extendTraces('errorChart', {
-                        x: [[currentYear]],
-                        y: [[estimatedError]]
-                    }, [0]);
-
-                    // Показываем уведомление
-                    showNotification('Новый прогноз добавлен на график!', 'success');
+                    showNotification('✅ Прогноз успешно рассчитан!', 'success');
                 } else {
                     resultDiv.innerHTML = `
                         <div class="error">
-                            <h3>Ошибка:</h3>
+                            <h3>❌ Ошибка:</h3>
                             <p>${result.error}</p>
                         </div>`;
                     showNotification(result.error, 'error');
                 }
             } catch (error) {
-                document.getElementById('result').innerHTML = `
+                resultDiv.innerHTML = `
                     <div class="error">
-                        <h3>Ошибка соединения:</h3>
+                        <h3>❌ Ошибка соединения:</h3>
                         <p>Не удалось подключиться к серверу</p>
                     </div>`;
                 showNotification('Ошибка соединения с сервером', 'error');
@@ -192,58 +296,20 @@
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.innerHTML = message;
-            notification.style.position = 'fixed';
-            notification.style.top = '20px';
-            notification.style.right = '20px';
-            notification.style.padding = '15px 20px';
-            notification.style.borderRadius = '8px';
-            notification.style.zIndex = '1000';
-            notification.style.animation = 'slideIn 0.3s ease-out';
-            
-            if (type === 'success') {
-                notification.style.backgroundColor = '#d4edda';
-                notification.style.color = '#155724';
-                notification.style.border = '1px solid #c3e6cb';
-            } else {
-                notification.style.backgroundColor = '#f8d7da';
-                notification.style.color = '#721c24';
-                notification.style.border = '1px solid #f5c6cb';
-            }
-            
             document.body.appendChild(notification);
             
             setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease-out';
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
 
-        // Добавляем CSS анимации для уведомлений
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+        // Загрузка данных при загрузке страницы
+        loadHistoricalData();
     </script>
 </body>
 </html>
