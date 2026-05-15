@@ -1,10 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 import numpy as np
 import logging
-import traceback
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 # Веса и смещения нейронной сети
 input_hidden_weights = np.array([
@@ -44,7 +43,7 @@ max_target = np.array([467.0])
 min_target = np.array([85.0])
 mean_inputs = np.array([246.78, -6.454])
 
-# Данные с 2010 года
+# Данные только с 2010 года
 historical_data = {
     'years': [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021],
     'predicted': [253, 105, 84, 39, 61, 66, 40, 270, 215, 287, 130],
@@ -53,81 +52,56 @@ historical_data = {
 
 def scale_inputs(input_data, minimum=0, maximum=1):
     """Нормализует входные данные в диапазон [minimum, maximum]"""
-    try:
-        delta = (maximum - minimum) / (max_input - min_input)
-        scaled = minimum - delta * min_input + delta * input_data
-        return scaled
-    except Exception as e:
-        app.logger.error(f"Ошибка в scale_inputs: {str(e)}")
-        return input_data
+    delta = (maximum - minimum) / (max_input - min_input)
+    scaled = minimum - delta * min_input + delta * input_data
+    return scaled
 
 def unscale_targets(output_data, minimum=0, maximum=1):
     """Денормализует выходные данные обратно в исходный диапазон"""
-    try:
-        delta = (maximum - minimum) / (max_target - min_target)
-        unscaled = (output_data - minimum + delta * min_target) / delta
-        return unscaled
-    except Exception as e:
-        app.logger.error(f"Ошибка в unscale_targets: {str(e)}")
-        return output_data
+    delta = (maximum - minimum) / (max_target - min_target)
+    unscaled = (output_data - minimum + delta * min_target) / delta
+    return unscaled
 
 def logistic(x):
     """Логистическая функция активации"""
-    try:
-        if x > 100.0:
-            return 1.0
-        elif x < -100.0:
-            return 0.0
-        else:
-            return 1.0 / (1.0 + np.exp(-x))
-    except Exception as e:
-        app.logger.error(f"Ошибка в logistic: {str(e)}")
-        return 0.5
+    if x > 100.0:
+        return 1.0
+    elif x < -100.0:
+        return 0.0
+    else:
+        return 1.0 / (1.0 + np.exp(-x))
 
 def compute_feed_forward_signals(mat_inout, v_in, v_bias, size1, size2, layer):
     """Вычисляет прямой проход для слоя нейронной сети"""
-    try:
-        v_out = np.zeros(size2)
+    v_out = np.zeros(size2)
 
-        for row in range(size2):
-            v_out[row] = np.sum(mat_inout[row, :size1] * v_in) + v_bias[row]
+    for row in range(size2):
+        v_out[row] = np.sum(mat_inout[row, :size1] * v_in) + v_bias[row]
 
-            if layer == 0:  # Скрытый слой — логистическая активация
-                v_out[row] = logistic(v_out[row])
-            elif layer == 1:  # Выходной слой — экспоненциальная активация
-                v_out[row] = np.exp(v_out[row])
+        if layer == 0:  # Скрытый слой — логистическая активация
+            v_out[row] = logistic(v_out[row])
+        elif layer == 1:  # Выходной слой — экспоненциальная активация
+            v_out[row] = np.exp(v_out[row])
 
-        return v_out
-    except Exception as e:
-        app.logger.error(f"Ошибка в compute_feed_forward_signals: {str(e)}")
-        return np.zeros(size2)
+    return v_out
 
 def run_neural_net_regression(input_data):
     """Запускает нейронную сеть для регрессии"""
-    try:
-        hidden_layer = compute_feed_forward_signals(
-            input_hidden_weights, input_data, hidden_bias, 2, 11, 0
-        )
-        output_layer = compute_feed_forward_signals(
-            hidden_output_wts, hidden_layer, output_bias, 11, 1, 1
-        )
-        return output_layer
-    except Exception as e:
-        app.logger.error(f"Ошибка в run_neural_net_regression: {str(e)}")
-        return np.array([200.0])  # Возвращаем значение по умолчанию
+    hidden_layer = compute_feed_forward_signals(
+        input_hidden_weights, input_data, hidden_bias, 2, 11, 0
+    )
+    output_layer = compute_feed_forward_signals(
+        hidden_output_wts, hidden_layer, output_bias, 11, 1, 1
+    )
+    return output_layer
 
 @app.route('/')
 def index():
-    try:
-        return render_template('index_fixed.html')
-    except Exception as e:
-        app.logger.error(f"Ошибка в index: {str(e)}")
-        return "Ошибка загрузки страницы", 500
+    return render_template('index_updated.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Получение данных из формы
         var2 = request.form.get('var2')
         var3 = request.form.get('var3')
         
@@ -140,7 +114,6 @@ def predict():
         var2 = float(var2)
         var3 = float(var3)
         
-        # Проверка допустимых значений
         if var2 < min_input[0] or var2 > max_input[0]:
             return jsonify({
                 'success': False,
@@ -153,26 +126,16 @@ def predict():
                 'error': f'Температура должна быть в диапазоне [{min_input[1]:.1f}, {max_input[1]:.1f}] °C'
             })
         
-        # Замена пропущенных значений
         if var2 == -9999:
             var2 = mean_inputs[0]
         if var3 == -9999:
             var3 = mean_inputs[1]
         
-        # Подготовка данных
         input_data = np.array([var2, var3])
-        
-        # Нормализация
         scaled_input = scale_inputs(input_data)
-        
-        # Запуск нейронной сети
         normalized_output = run_neural_net_regression(scaled_input)
-        
-        # Денормализация
         final_output = unscale_targets(normalized_output)
         prediction_value = float(final_output[0])
-        
-        # Ограничение результата
         prediction_value = max(min_target[0], min(max_target[0], prediction_value))
         
         return jsonify({
@@ -186,21 +149,16 @@ def predict():
             'error': 'Пожалуйста, введите корректные числовые значения'
         })
     except Exception as e:
-        app.logger.error(f"Ошибка в predict: {str(e)}")
-        app.logger.error(traceback.format_exc())
+        app.logger.error(f'Ошибка: {str(e)}')
         return jsonify({
             'success': False,
-            'error': f'Внутренняя ошибка сервера: {str(e)}'
+            'error': 'Внутренняя ошибка сервера'
         })
 
 @app.route('/api/historical_data', methods=['GET'])
 def get_historical_data():
     """Возвращает исторические данные для графиков"""
-    try:
-        return jsonify(historical_data)
-    except Exception as e:
-        app.logger.error(f"Ошибка в get_historical_data: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    return jsonify(historical_data)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
