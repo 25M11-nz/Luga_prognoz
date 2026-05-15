@@ -116,7 +116,7 @@ def predict():
 
         return jsonify({
             'success': True,
-            'prediction': f"{final_output[0]:.6f}"
+            'prediction': f"{final_output[0]:.0f}"
         })
 
     except Exception as e:
