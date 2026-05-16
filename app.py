@@ -44,11 +44,11 @@ min_target = np.array([85.0])
 mean_inputs = np.array([246.78, -6.454])
 
 # Данные только с 2010 года
-historical_data = {
-    'years': [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021],
-    'predicted': [253, 105, 84, 39, 61, 66, 40, 270, 215, 287, 130],
-    'actual': [454, 453, 369, 406, 235, 279, 272, 285, 352, 334, 321]
-}
+# historical_data = {
+#    'years': [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2021],
+#    'predicted': [253, 105, 84, 39, 61, 66, 40, 270, 215, 287, 130],
+#    'actual': [454, 453, 369, 406, 235, 279, 272, 285, 352, 334, 321]
+#}
 
 def scale_inputs(input_data, minimum=0, maximum=1):
     """Нормализует входные данные в диапазон [minimum, maximum]"""
@@ -155,10 +155,10 @@ def predict():
             'error': 'Внутренняя ошибка сервера'
         })
 
-@app.route('/api/historical_data', methods=['GET'])
-def get_historical_data():
-    """Возвращает исторические данные для графиков"""
-    return jsonify(historical_data)
+#@app.route('/api/historical_data', methods=['GET'])
+#def get_historical_data():
+#    """Возвращает исторические данные для графиков"""
+#    return jsonify(historical_data)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
