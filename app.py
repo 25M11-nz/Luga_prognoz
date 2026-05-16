@@ -102,57 +102,32 @@ def index():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        var2 = request.form.get('var2')
-        var3 = request.form.get('var3')
-        
-        if var2 is None or var3 is None:
-            return jsonify({
-                'success': False,
-                'error': 'Пожалуйста, заполните все поля'
-            })
-        
-        var2 = float(var2)
-        var3 = float(var3)
-        
-        if var2 < min_input[0] or var2 > max_input[0]:
-            return jsonify({
-                'success': False,
-                'error': f'Уровень должен быть в диапазоне [{min_input[0]:.0f}, {max_input[0]:.0f}] см'
-            })
-        
-        if var3 < min_input[1] or var3 > max_input[1]:
-            return jsonify({
-                'success': False,
-                'error': f'Температура должна быть в диапазоне [{min_input[1]:.1f}, {max_input[1]:.1f}] °C'
-            })
-        
-        if var2 == -9999:
-            var2 = mean_inputs[0]
-        if var3 == -9999:
-            var3 = mean_inputs[1]
-        
+        # Получение данных из формы
+        var2 = float(request.form['var2'])
+        var3 = float(request.form['var3'])
+
+        # Замена пропущенных значений на средние
         input_data = np.array([var2, var3])
+        input_data[input_data == -9999] = mean_inputs[input_data == -9999]
+
+        # Нормализация входных данных
         scaled_input = scale_inputs(input_data)
+
+        # Запуск нейронной сети
         normalized_output = run_neural_net_regression(scaled_input)
+
+        # Денормализация результата
         final_output = unscale_targets(normalized_output)
-        prediction_value = float(final_output[0])
-        prediction_value = max(min_target[0], min(max_target[0], prediction_value))
-        
+
         return jsonify({
             'success': True,
-            'prediction': f"{prediction_value:.0f}"
+            'prediction': f"{final_output[0]:.0f}"
         })
-        
-    except ValueError as e:
-        return jsonify({
-            'success': False,
-            'error': 'Пожалуйста, введите корректные числовые значения'
-        })
+
     except Exception as e:
-        app.logger.error(f'Ошибка: {str(e)}')
         return jsonify({
             'success': False,
-            'error': 'Внутренняя ошибка сервера'
+            'error': str(e)
         })
 
 #@app.route('/api/historical_data', methods=['GET'])
